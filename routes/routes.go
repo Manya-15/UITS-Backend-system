@@ -14,9 +14,12 @@ func SetupRoutes(r *gin.Engine) {
     api.Use(middlewares.AuthMiddleware())
     api.GET("/profile", controllers.GetProfile)
 
+	// r.POST("/add-device", controllers.AddDevice)
+
     admin := api.Group("/admin")
-    admin.Use(middlewares.RoleMiddleware("admin", "user"))
+    admin.Use(middlewares.RoleMiddleware("admin","DOE"))
     admin.GET("/dashboard", func(c *gin.Context) {
         c.JSON(200, gin.H{"message": "Welcome, admin!"})
     })
+	// admin.POST("/add-device", controllers.AddDevice)
 }

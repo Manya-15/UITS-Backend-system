@@ -1,50 +1,45 @@
 package config
 
 import (
+    "database/sql"
     "fmt"
     "log"
     "os"
+
+    _ "github.com/go-sql-driver/mysql"
     "github.com/joho/godotenv"
-    "gorm.io/driver/mysql"
-    "gorm.io/gorm"
-    "webtechproject/models" // Replace with your actual module name
 )
 
-var DB *gorm.DB
+var DB *sql.DB
 var JWT_SECRET []byte
 
 func init() {
-    // Load .env file
     err := godotenv.Load()
     if err != nil {
         log.Fatal("Error loading .env file")
     }
 
-    // Load JWT secret from the environment
     JWT_SECRET = []byte(os.Getenv("JWT_SECRET"))
 
-    // Connect to the database
     ConnectDB()
 }
 
 func ConnectDB() {
-    // Fetch database credentials from environment variables
-    dbUsername := os.Getenv("DB_USERNAME")
-    dbPassword := os.Getenv("DB_PASSWORD")
-    dbHost := os.Getenv("DB_HOST")
-    dbPort := os.Getenv("DB_PORT")
-    dbName := os.Getenv("DB_NAME")
-
-    // Form the Data Source Name (DSN)
-    dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-        dbUsername, dbPassword, dbHost, dbPort, dbName)
+    dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+        os.Getenv("DB_USERNAME"),
+        os.Getenv("DB_PASSWORD"),
+        os.Getenv("DB_HOST"),
+        os.Getenv("DB_PORT"),
+        os.Getenv("DB_NAME"),
+    )
 
     var err error
-    DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+    DB, err = sql.Open("mysql", dsn)
     if err != nil {
         log.Fatal("Failed to connect to DB:", err)
     }
 
-    // Auto migrate your models
-    DB.AutoMigrate(&models.User{})
+    if err := DB.Ping(); err != nil {
+        log.Fatal("Database not reachable:", err)
+    }
 }

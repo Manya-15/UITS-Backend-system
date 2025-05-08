@@ -2,7 +2,6 @@ package controllers
 
 import (
     "net/http"
-    "webtechproject/config"
     "webtechproject/models"
     "github.com/gin-gonic/gin"
 )
@@ -10,11 +9,20 @@ import (
 func GetProfile(c *gin.Context) {
     userID := c.GetUint("user_id")
 
-    var user models.User
-    if err := config.DB.First(&user, userID).Error; err != nil {
+    // Retrieve user profile from the database
+    user, err := models.GetUserByID(userID)
+    if err != nil {
         c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
         return
     }
 
-    c.JSON(http.StatusOK, gin.H{"email": user.Email, "role": user.Role})
+    // Return user profile information
+    c.JSON(http.StatusOK, gin.H{
+        "email":       user.Email,
+        "role":        user.Role,
+        "full_name":   user.FullName,
+        "designation": user.Designation,
+        "username":    user.Username,
+        "status":      user.Status,
+    })
 }
