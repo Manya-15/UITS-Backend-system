@@ -3,7 +3,7 @@ package main
 import (
     "webtechproject/config"
     "webtechproject/routes"
-	"webtechproject/controllers"
+	// "webtechproject/controllers"
     "github.com/gin-gonic/gin"
     "github.com/gin-contrib/cors"
     "time" // <-- Import the time package
@@ -25,7 +25,7 @@ func main() {
     routes.SetupRoutes(r)
 	routes.RegisterDeviceRoutes(r)
 	routes.RegisterSpecificationRoutes(r)
-	r.POST("/ownership/assign", controllers.AssignOwnershipBulk)
+	
 
     r.Run(":8080") // Backend on port 8080
 }

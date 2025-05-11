@@ -15,16 +15,31 @@ type DeviceType struct {
     Name string `json:"type_name"`
 }
 
+// type DeviceInput struct {
+//     DeviceName     string `json:"device_name"`
+//     TypeID         int    `json:"type_id"`
+//     SerialNo       string `json:"serial_no"`
+//     ModelNo        string `json:"model_no"`
+//     PurchaseDate   string `json:"purchase_date"`
+//     WarrantyExpiry string `json:"warranty_expiry"`
+//     LocationID     int    `json:"location_id"`
+//     ReplacedID     *int   `json:"replaced_device_id"`
+// }
+
 type DeviceInput struct {
-    DeviceName     string `json:"device_name"`
-    TypeID         int    `json:"type_id"`
-    SerialNo       string `json:"serial_no"`
-    ModelNo        string `json:"model_no"`
-    PurchaseDate   string `json:"purchase_date"`
-    WarrantyExpiry string `json:"warranty_expiry"`
-    LocationID     int    `json:"location_id"`
-    ReplacedID     *int   `json:"replaced_device_id"`
+    DeviceName       string  `json:"device_name"`
+    TypeID           int     `json:"type_id"`
+    SerialNo         string  `json:"serial_no"`
+    ModelNo          string  `json:"model_no"`
+    PurchaseDate     string  `json:"purchase_date"`
+    WarrantyExpiry   string  `json:"warranty_expiry"`
+    LocationID       *int    `json:"location_id"`         // Optional, defaults to 1
+    NewLocationName  *string `json:"new_location_name"`   // Optional
+    LevelID          *int    `json:"level_id"`            // Optional
+    ParentLocationID *int    `json:"parent_location_id"`  // Optional
+    ReplacedID       *int    `json:"replaced_device_id"`
 }
+
 
 func FetchDeviceCategories() ([]DeviceCategory, error) {
 	log.Printf("hehehe")
@@ -73,7 +88,29 @@ func InsertDeviceType(catID int, typeName string) error {
     return err
 }
 
+// func InsertDevice(device DeviceInput, addedBy int) error {
+//     _, err := config.DB.Exec("CALL sp_add_device(?, ?, ?, ?, ?, ?, ?, ?, ?)",
+//         device.DeviceName,
+//         device.TypeID,
+//         device.SerialNo,
+//         device.ModelNo,
+//         device.PurchaseDate,
+//         device.WarrantyExpiry,
+//         addedBy,
+//         device.LocationID,
+//         device.ReplacedID,
+//     )
+//     return err
+// }
+
+
 func InsertDevice(device DeviceInput, addedBy int) error {
+    locID := 1 // default
+
+    if device.LocationID != nil {
+        locID = *device.LocationID
+    }
+
     _, err := config.DB.Exec("CALL sp_add_device(?, ?, ?, ?, ?, ?, ?, ?, ?)",
         device.DeviceName,
         device.TypeID,
@@ -82,7 +119,7 @@ func InsertDevice(device DeviceInput, addedBy int) error {
         device.PurchaseDate,
         device.WarrantyExpiry,
         addedBy,
-        device.LocationID,
+        locID,
         device.ReplacedID,
     )
     return err

@@ -21,5 +21,7 @@ func SetupRoutes(r *gin.Engine) {
     admin.GET("/dashboard", func(c *gin.Context) {
         c.JSON(200, gin.H{"message": "Welcome, admin!"})
     })
+    admin.POST("/ownership/assign", controllers.AssignOwnershipBulk)
+
 	// admin.POST("/add-device", controllers.AddDevice)
 }

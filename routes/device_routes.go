@@ -19,6 +19,8 @@ func RegisterDeviceRoutes(r *gin.Engine) {
     admin.POST("/add-type", controllers.AddDeviceType)
     admin.POST("/add", controllers.AddDevice)
 	admin.POST("/view", controllers.ViewFilteredDevices)
+    admin.GET("/locations", controllers.GetAllLocations)
+
 
 	// for assigning the ownership 
 	
