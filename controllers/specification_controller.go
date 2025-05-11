@@ -8,8 +8,8 @@ import (
 )
 
 func GetDeviceSpecificationTemplates(c *gin.Context) {
-    deviceID, _ := strconv.Atoi(c.Param("device_id"))
-    templates, err := models.FetchTemplatesByDeviceID(deviceID)
+    typeID, _ := strconv.Atoi(c.Param("type_id"))
+    templates, err := models.FetchTemplatesByTypeID(typeID)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch templates"})
         return
@@ -35,7 +35,10 @@ func AddSpecificationTemplate(c *gin.Context) {
 }
 
 func GetSpecificationValues(c *gin.Context) {
-    values, err := models.FetchSpecificationValues()
+    var req struct {
+        TemplateID    int    `json:"template_id"`
+    }
+    values, err := models.FetchSpecificationValues(req.TemplateID)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch values"})
         return
@@ -46,12 +49,13 @@ func GetSpecificationValues(c *gin.Context) {
 func AddSpecificationValue(c *gin.Context) {
     var req struct {
         SpecValue string `json:"spec_value"`
+        TemplateID int `json:"template_id"`
     }
     if err := c.BindJSON(&req); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
         return
     }
-    err := models.InsertSpecificationValue(req.SpecValue)
+    err := models.InsertSpecificationValue(req.SpecValue, req.TemplateID)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert value"})
         return

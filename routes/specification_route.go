@@ -14,9 +14,9 @@ func RegisterSpecificationRoutes(r *gin.Engine) {
     spec := api.Group("/specifications")
     spec.Use(middlewares.RoleMiddleware("admin", "DOE"))
 
-    spec.GET("/templates/:device_id", controllers.GetDeviceSpecificationTemplates)
+    spec.GET("/templates/:type_id", controllers.GetDeviceSpecificationTemplates)
     spec.POST("/add-template", controllers.AddSpecificationTemplate)
-    spec.GET("/values", controllers.GetSpecificationValues)
-    spec.POST("/add-value", controllers.AddSpecificationValue)
+    spec.POST("/values", controllers.GetSpecificationValues) //template id passed in this
+    spec.POST("/add-value", controllers.AddSpecificationValue) //yemplate id passes in this as well
     spec.POST("/add", controllers.AddDeviceSpecifications)
 }
