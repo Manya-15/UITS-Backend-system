@@ -41,7 +41,7 @@ func FetchTemplatesByDeviceID(deviceID int) ([]SpecificationTemplate, error) {
 }
 
 func InsertSpecificationTemplate(typeID int, name string) error {
-    _, err := config.DB.Exec("INSERT INTO Specification_Template (type_id, spec_name) VALUES (?, ?)", typeID, name)
+    _, err := config.DB.Exec("CALL sp_add_specification_template(?, ?)", typeID, name)
     return err
 }
 
@@ -62,30 +62,47 @@ func FetchSpecificationValues() ([]SpecificationMaster, error) {
 }
 
 func InsertSpecificationValue(value string) error {
-    _, err := config.DB.Exec("INSERT INTO Specification_Master (spec_value) VALUES (?)", value)
+    _, err := config.DB.Exec("CALL sp_add_specification_master(?)", value)
     return err
 }
 
+// func InsertDeviceSpecifications(specs []DeviceSpecificationInput) error {
+//     tx, err := config.DB.Begin()
+//     if err != nil {
+//         return err
+//     }
+//     stmt, err := tx.Prepare(`
+//         INSERT INTO Device_Specification (device_id, spec_template_id, spec_master_id) 
+//         VALUES (?, ?, ?)`)
+//     if err != nil {
+//         tx.Rollback()
+//         return err
+//     }
+//     defer stmt.Close()
+
+//     for _, spec := range specs {
+//         _, err := stmt.Exec(spec.DeviceID, spec.SpecTemplateID, spec.SpecMasterID)
+//         if err != nil {
+//             tx.Rollback()
+//             return err
+//         }
+//     }
+//     return tx.Commit()
+// }
 func InsertDeviceSpecifications(specs []DeviceSpecificationInput) error {
     tx, err := config.DB.Begin()
     if err != nil {
         return err
     }
-    stmt, err := tx.Prepare(`
-        INSERT INTO Device_Specification (device_id, spec_template_id, spec_master_id) 
-        VALUES (?, ?, ?)`)
-    if err != nil {
-        tx.Rollback()
-        return err
-    }
-    defer stmt.Close()
 
     for _, spec := range specs {
-        _, err := stmt.Exec(spec.DeviceID, spec.SpecTemplateID, spec.SpecMasterID)
+        _, err := tx.Exec("CALL sp_add_device_specification(?, ?, ?)",
+            spec.DeviceID, spec.SpecTemplateID, spec.SpecMasterID)
         if err != nil {
             tx.Rollback()
             return err
         }
     }
+
     return tx.Commit()
 }
