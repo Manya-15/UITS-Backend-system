@@ -11,7 +11,7 @@ func RegisterDeviceRoutes(r *gin.Engine) {
     api.Use(middlewares.AuthMiddleware())
 
     admin := api.Group("/device")
-    admin.Use(middlewares.RoleMiddleware("admin", "DOE"))
+    admin.Use(middlewares.RoleMiddleware("admin", "user"))
 
     admin.GET("/categories", controllers.GetDeviceCategories)
     admin.GET("/all-types", controllers.GetDeviceTypes)
@@ -19,9 +19,9 @@ func RegisterDeviceRoutes(r *gin.Engine) {
     admin.POST("/add-category", controllers.AddDeviceCategory)
     admin.POST("/add-type", controllers.AddDeviceType)
     admin.POST("/add", controllers.AddDevice)
-	admin.POST("/view", controllers.ViewFilteredDevices)
     admin.GET("/locations", controllers.GetAllLocations)
-
+    // admin.Use(middlewares.RoleMiddleware("admin", "user"))
+	admin.POST("/view", controllers.ViewFilteredDevices)
 
 	// for assigning the ownership 
 	

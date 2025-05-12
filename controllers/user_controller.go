@@ -24,6 +24,7 @@ func GetProfile(c *gin.Context) {
         "designation": user.Designation,
         "username":    user.Username,
         "status":      user.Status,
+        "user_id":    user.ID,
     })
 }
 
