@@ -19,21 +19,27 @@ func GetDeviceSpecificationTemplates(c *gin.Context) {
 }
 
 func AddSpecificationTemplate(c *gin.Context) {
-    var req struct {
-        TypeID    int    `json:"type_id"`
-        SpecName  string `json:"spec_name"`
-    }
-    if err := c.BindJSON(&req); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-        return
-    }
-    err := models.InsertSpecificationTemplate(req.TypeID, req.SpecName)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert template"})
-        return
-    }
-    c.JSON(http.StatusOK, gin.H{"message": "Template added successfully"})
+	var req struct {
+		TypeID   int    `json:"type_id"`
+		SpecName string `json:"spec_name"`
+	}
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	result, err := models.InsertSpecificationTemplate(req.TypeID, req.SpecName)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert template"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":     "Template added successfully",
+		"spec_template_id": result.SpecTemplateID,
+	})
 }
+
 
 func GetSpecificationValues(c *gin.Context) {
     var req struct {
@@ -58,20 +64,25 @@ func GetSpecificationValues(c *gin.Context) {
 
 
 func AddSpecificationValue(c *gin.Context) {
-    var req struct {
-        SpecValue string `json:"spec_value"`
-        TemplateID int `json:"template_id"`
-    }
-    if err := c.BindJSON(&req); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-        return
-    }
-    err := models.InsertSpecificationValue(req.SpecValue, req.TemplateID)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert value"})
-        return
-    }
-    c.JSON(http.StatusOK, gin.H{"message": "Value added successfully"})
+	var req struct {
+		SpecValue  string `json:"spec_value"`
+		TemplateID int    `json:"template_id"`
+	}
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	result, err := models.InsertSpecificationValue(req.SpecValue, req.TemplateID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert value"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":           "Value added successfully",
+		"spec_master_id":  result.SpecMasterID,
+	})
 }
 
 func AddDeviceSpecifications(c *gin.Context) {

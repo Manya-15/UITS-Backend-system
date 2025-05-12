@@ -21,6 +21,15 @@ type DeviceSpecificationInput struct {
     SpecMasterID    int `json:"spec_master_id"`
 }
 
+type TemplateIDResponse struct {
+    SpecTemplateID int `json:"spec_template_id"`
+}
+
+type SpecificationIDResponse struct {
+    SpecMasterID int `json:"spec_master_id"`
+}
+
+
 // func FetchTemplatesByDeviceID(deviceID int) ([]SpecificationTemplate, error) {
 //     query := `
 //         SELECT st.spec_template_id, st.type_id, st.spec_name 
@@ -63,10 +72,24 @@ func FetchTemplatesByTypeID(TypeID int) ([]SpecificationTemplate, error) {
     return templates, nil
 }
 
-func InsertSpecificationTemplate(typeID int, name string) error {
-    _, err := config.DB.Exec("CALL sp_add_specification_template(?, ?)", typeID, name)
-    return err
+func InsertSpecificationTemplate(typeID int, name string) (TemplateIDResponse, error) {
+    _, err := config.DB.Exec("CALL sp_add_specification_template(?, ?, @template_id)", typeID, name)
+    if err != nil {
+        log.Printf("Error executing stored procedure: %v", err)
+        return TemplateIDResponse{}, err
+    }
+
+    var id int
+    err = config.DB.QueryRow("SELECT @template_id").Scan(&id)
+    if err != nil {
+        log.Printf("Error fetching template ID: %v", err)
+        return TemplateIDResponse{}, err
+    }
+
+    log.Printf("Specification template added with ID: %d", id)
+    return TemplateIDResponse{SpecTemplateID: id}, nil
 }
+
 
 func FetchSpecificationValues(TemplateID int) ([]SpecificationMaster, error) {
     log.Println("Fetching specification values for template ID:", TemplateID)
@@ -93,9 +116,22 @@ func FetchSpecificationValues(TemplateID int) ([]SpecificationMaster, error) {
 }
 
 
-func InsertSpecificationValue(Value string, TemplateID int) error {
-    _, err := config.DB.Exec("CALL sp_add_specification_master(?, ?)", Value, TemplateID)
-    return err 
+func InsertSpecificationValue(value string, templateID int) (SpecificationIDResponse, error) {
+    _, err := config.DB.Exec("CALL sp_add_specification_master(?, ?, @spec_master_id)", value, templateID)
+    if err != nil {
+        log.Printf("Error executing stored procedure: %v", err)
+        return SpecificationIDResponse{}, err
+    }
+
+    var id int
+    err = config.DB.QueryRow("SELECT @spec_master_id").Scan(&id)
+    if err != nil {
+        log.Printf("Error retrieving specification ID: %v", err)
+        return SpecificationIDResponse{}, err
+    }
+
+    log.Printf("Specification value added with ID: %d", id)
+    return SpecificationIDResponse{SpecMasterID: id}, nil
 }
 
 

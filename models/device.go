@@ -15,6 +15,11 @@ type DeviceType struct {
     Name string `json:"type_name"`
 }
 
+type DeviceIDResponse struct {
+    DeviceID int `json:"deviceId"`
+}
+
+
 // type DeviceInput struct {
 //     DeviceName     string `json:"device_name"`
 //     TypeID         int    `json:"type_id"`
@@ -104,23 +109,58 @@ func InsertDeviceType(catID int, typeName string) error {
 // }
 
 
-func InsertDevice(device DeviceInput, addedBy int) error {
-    locID := 1 // default
+// func InsertDevice(device DeviceInput, addedBy int) error {
+//     locID := 1 // default
 
-    if device.LocationID != nil {
-        locID = *device.LocationID
-    }
+//     if device.LocationID != nil {
+//         locID = *device.LocationID
+//     }
 
-    _, err := config.DB.Exec("CALL sp_add_device(?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        device.DeviceName,
-        device.TypeID,
-        device.SerialNo,
-        device.ModelNo,
-        device.PurchaseDate,
-        device.WarrantyExpiry,
-        addedBy,
-        locID,
-        device.ReplacedID,
-    )
-    return err
+//     _, err := config.DB.Exec("CALL sp_add_device(?, ?, ?, ?, ?, ?, ?, ?, ?)",
+//         device.DeviceName,
+//         device.TypeID,
+//         device.SerialNo,
+//         device.ModelNo,
+//         device.PurchaseDate,
+//         device.WarrantyExpiry,
+//         addedBy,
+//         locID,
+//         device.ReplacedID,
+//     )
+//     return err
+// }
+
+func InsertDevice(device DeviceInput, addedBy int) (DeviceIDResponse, error) {
+	locID := 1 // default location
+
+	if device.LocationID != nil {
+		locID = *device.LocationID
+	}
+
+	_, err := config.DB.Exec("CALL sp_add_device(?, ?, ?, ?, ?, ?, ?, ?, ?, @device_id)",
+		device.DeviceName,
+		device.TypeID,
+		device.SerialNo,
+		device.ModelNo,
+		device.PurchaseDate,
+		device.WarrantyExpiry,
+		addedBy,
+		locID,
+		device.ReplacedID,
+	)
+
+	if err != nil {
+		log.Printf("Error calling stored procedure: %v", err)
+		return DeviceIDResponse{}, err
+	}
+
+	var id int
+	err = config.DB.QueryRow("SELECT @device_id").Scan(&id)
+	if err != nil {
+		log.Printf("Error retrieving output parameters: %v", err)
+		return DeviceIDResponse{}, err
+	}
+
+	log.Printf("Device added with ID: %d\n", id)
+	return DeviceIDResponse{DeviceID: id}, nil
 }

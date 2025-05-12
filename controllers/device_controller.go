@@ -65,12 +65,16 @@ func AddDevice(c *gin.Context) {
     }
 
     addedBy := c.GetUint("user_id")
-    if err := models.InsertDevice(input, int(addedBy)); err != nil {
+    result, err := models.InsertDevice(input, int(addedBy))
+    if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
-    c.JSON(http.StatusOK, gin.H{"message": "Device added successfully"})
+    c.JSON(http.StatusOK, gin.H{
+        "message":   "Device added successfully",
+        "deviceId":  result.DeviceID,
+    })
 }
 
 
