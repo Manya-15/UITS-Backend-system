@@ -1,10 +1,12 @@
 package models
 
-import "webtechproject/config"
+import (
+    "webtechproject/config"
+    "log"
+)
 
 type SpecificationTemplate struct {
-    ID      int    `json:"id"`
-    TypeID  int    `json:"type_id"`
+    ID      int    `json:"template_id"`
     Name    string `json:"name"`
 }
 
@@ -45,7 +47,7 @@ func FetchTemplatesByTypeID(TypeID int) ([]SpecificationTemplate, error) {
         SELECT st.spec_template_id, st.spec_name 
         FROM Specification_Template st 
         JOIN device_type d ON d.type_id = st.type_id 
-        WHERE d.device_id = ? AND st.status = 1`
+        WHERE d.type_id = ? AND st.status = 1`
     rows, err := config.DB.Query(query, TypeID)
     if err != nil {
         return nil, err
@@ -67,12 +69,15 @@ func InsertSpecificationTemplate(typeID int, name string) error {
 }
 
 func FetchSpecificationValues(TemplateID int) ([]SpecificationMaster, error) {
+    log.Println("Fetching specification values for template ID:", TemplateID)
     query := `
         SELECT st.spec_master_id, st.spec_value 
         FROM Specification_master st 
         JOIN Specification_template s ON st.spec_template_id = s.spec_template_id
         WHERE s.spec_template_id = ? AND st.status = 1 AND s.status = 1`
     rows, err := config.DB.Query(query, TemplateID)
+
+    log.Println(rows, err)
     if err != nil {
         return nil, err
     }

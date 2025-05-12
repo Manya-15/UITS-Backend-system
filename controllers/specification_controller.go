@@ -5,6 +5,7 @@ import (
     "strconv"
     "github.com/gin-gonic/gin"
     "webtechproject/models"
+    "log"
 )
 
 func GetDeviceSpecificationTemplates(c *gin.Context) {
@@ -36,15 +37,25 @@ func AddSpecificationTemplate(c *gin.Context) {
 
 func GetSpecificationValues(c *gin.Context) {
     var req struct {
-        TemplateID    int    `json:"template_id"`
+        TemplateID int `json:"template_id"`
     }
+
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+        return
+    }
+
+    log.Println("Request Body Template id in controller is :", req.TemplateID)
+
     values, err := models.FetchSpecificationValues(req.TemplateID)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch values"})
         return
     }
+
     c.JSON(http.StatusOK, values)
 }
+
 
 func AddSpecificationValue(c *gin.Context) {
     var req struct {
