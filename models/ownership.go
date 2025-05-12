@@ -44,7 +44,7 @@ func GetAllChildLocationIDs(parentID int) ([]int, error) {
 
 func AssignOwnershipBulk(input OwnershipAssignment) error {
     var filters []string
-    var deviceArgs []interface{} // For filters only
+    var args []interface{}
 
     if input.LocationID != nil {
         locIDs, err := GetAllChildLocationIDs(*input.LocationID)
@@ -53,42 +53,67 @@ func AssignOwnershipBulk(input OwnershipAssignment) error {
         }
         if len(locIDs) > 0 {
             placeholders := strings.Repeat("?,", len(locIDs))
-            filters = append(filters, fmt.Sprintf("d.location_id IN (%s)", placeholders[:len(placeholders)-1]))
+            filters = append(filters, fmt.Sprintf("location_id IN (%s)", placeholders[:len(placeholders)-1]))
             for _, id := range locIDs {
-                deviceArgs = append(deviceArgs, id)
+                args = append(args, id)
             }
         }
     }
 
     if input.TypeID != nil {
-        filters = append(filters, "d.type_id = ?")
-        deviceArgs = append(deviceArgs, *input.TypeID)
+        filters = append(filters, "type_id = ?")
+        args = append(args, *input.TypeID)
     }
 
-    baseQuery := `
-        INSERT INTO Ownership (device_id, user_id, start_datetime, end_datetime, status)
-        SELECT d.device_id, ?, ?, ?, 1
-        FROM Device d
-        WHERE d.status_flag = 1
-          AND d.device_id NOT IN (
-              SELECT device_id FROM Ownership WHERE status = 1
-          )
-    `
+    filterQuery := "SELECT device_id FROM Device WHERE status_flag = 1"
     if len(filters) > 0 {
-        baseQuery += " AND " + strings.Join(filters, " AND ")
+        filterQuery += " AND " + strings.Join(filters, " AND ")
     }
 
-    // Final argument order: userID, start_datetime, end_datetime, [device filters...]
-    finalArgs := []interface{}{input.UserID, input.StartDate}
-    if input.EndDate != nil {
-        finalArgs = append(finalArgs, *input.EndDate)
-    } else {
-        finalArgs = append(finalArgs, nil)
+    rows, err := config.DB.Query(filterQuery, args...)
+    if err != nil {
+        return err
     }
-    finalArgs = append(finalArgs, deviceArgs...)
+    defer rows.Close()
 
-    _, err := config.DB.Exec(baseQuery, finalArgs...)
-    return err
+    var deviceIDs []int
+    for rows.Next() {
+        var deviceID int
+        if err := rows.Scan(&deviceID); err != nil {
+            return err
+        }
+        deviceIDs = append(deviceIDs, deviceID)
+    }
+
+    tx, err := config.DB.Begin()
+    if err != nil {
+        return err
+    }
+
+    for _, deviceID := range deviceIDs {
+        // Set old ownerships to inactive
+        _, err := tx.Exec("UPDATE Ownership SET status = 0 WHERE device_id = ? AND status = 1", deviceID)
+        if err != nil {
+            tx.Rollback()
+            return err
+        }
+
+        // Insert new ownership
+        _, err = tx.Exec(`
+            INSERT INTO Ownership (device_id, user_id, start_datetime, end_datetime, status)
+            VALUES (?, ?, ?, ?, 1)
+        `, deviceID, input.UserID, input.StartDate, input.EndDate)
+        if err != nil {
+            tx.Rollback()
+            return err
+        }
+    }
+
+    err = tx.Commit()
+    if err != nil {
+        return err
+    }
+
+    return nil
 }
-
 
