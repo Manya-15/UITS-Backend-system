@@ -12,7 +12,7 @@ type DeviceCategory struct {
 
 type DeviceType struct {
     ID   int    `json:"id"`
-    Name string `json:"type_name"`
+    Name string `json:"typename"`
 }
 
 type DeviceIDResponse struct {
@@ -63,6 +63,25 @@ func FetchDeviceCategories() ([]DeviceCategory, error) {
         categories = append(categories, cat)
     }
     return categories, nil
+}
+
+func FetchDeviceTypes() ([]DeviceType, error) {
+	
+    rows, err := config.DB.Query("SELECT type_id, type_name FROM device_type WHERE status = 1")
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var types []DeviceType
+    for rows.Next() {
+        var t DeviceType
+        if err := rows.Scan(&t.ID, &t.Name); err != nil {
+            return nil, err
+        }
+        types = append(types, t)
+    }
+    return types, nil
 }
 
 func FetchDeviceTypesByCategory(catID int) ([]DeviceType, error) {

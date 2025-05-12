@@ -16,6 +16,15 @@ func GetDeviceCategories(c *gin.Context) {
     c.JSON(http.StatusOK, categories)
 }
 
+func GetDeviceTypes(c *gin.Context) {
+    types, err := models.FetchDeviceTypes()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    c.JSON(http.StatusOK, types)
+}
+
 func GetDeviceTypesByCategory(c *gin.Context) {
     categoryID, _ := strconv.Atoi(c.Param("category_id"))
     types, err := models.FetchDeviceTypesByCategory(categoryID)

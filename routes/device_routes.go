@@ -14,6 +14,7 @@ func RegisterDeviceRoutes(r *gin.Engine) {
     admin.Use(middlewares.RoleMiddleware("admin", "DOE"))
 
     admin.GET("/categories", controllers.GetDeviceCategories)
+    admin.GET("/all-types", controllers.GetDeviceTypes)
     admin.GET("/types/:category_id", controllers.GetDeviceTypesByCategory)
     admin.POST("/add-category", controllers.AddDeviceCategory)
     admin.POST("/add-type", controllers.AddDeviceType)
