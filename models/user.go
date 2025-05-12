@@ -15,6 +15,16 @@ type User struct {
     Status      int
 }
 
+type Users struct {
+    ID          int    `json:"user_id"`
+    Email       string `json:"email"`
+    Role        string `json:"role"`
+    FullName    string `json:"full_name"`
+    Designation string `json:"designation"`
+    Username    string `json:"username"`
+
+}
+
 func CreateUser(user *User) error {
     query := `
         INSERT INTO user (email, password, role, full_name, designation, username, status)
@@ -70,4 +80,25 @@ func GetUserByID(id uint) (*User, error) {
     }
 
     return &user, nil
+}
+
+func GetUsers() ([]Users, error) {
+    rows, err := config.DB.Query("SELECT user_id, email, role, full_name, designation, username FROM user WHERE status = 1")
+    
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var users []Users
+    for rows.Next() {
+        var user Users
+        if err := rows.Scan(&user.ID, &user.Email, &user.Role, &user.FullName, &user.Designation, &user.Username); err != nil {
+    return nil, err
+}
+
+        users = append(users, user)
+    }
+    return users, nil
+    
 }

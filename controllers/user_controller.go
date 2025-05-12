@@ -26,3 +26,12 @@ func GetProfile(c *gin.Context) {
         "status":      user.Status,
     })
 }
+
+func GetUsers(c *gin.Context) {
+    users, err := models.GetUsers()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch users"})
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"users": users})
+}
