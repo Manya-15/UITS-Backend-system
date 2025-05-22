@@ -23,8 +23,4 @@ func RegisterDeviceRoutes(r *gin.Engine) {
     // admin.Use(middlewares.RoleMiddleware("admin", "user"))
 	admin.POST("/view", controllers.ViewFilteredDevices)
 
-	// for assigning the ownership 
-	
-
-
 }

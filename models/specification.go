@@ -30,26 +30,6 @@ type SpecificationIDResponse struct {
 }
 
 
-// func FetchTemplatesByDeviceID(deviceID int) ([]SpecificationTemplate, error) {
-//     query := `
-//         SELECT st.spec_template_id, st.type_id, st.spec_name 
-//         FROM Specification_Template st 
-//         JOIN Device d ON d.type_id = st.type_id 
-//         WHERE d.device_id = ? AND st.status = 1`
-//     rows, err := config.DB.Query(query, deviceID)
-//     if err != nil {
-//         return nil, err
-//     }
-//     defer rows.Close()
-
-//     var templates []SpecificationTemplate
-//     for rows.Next() {
-//         var t SpecificationTemplate
-//         rows.Scan(&t.ID, &t.TypeID, &t.Name)
-//         templates = append(templates, t)
-//     }
-//     return templates, nil
-// }
 
 func FetchTemplatesByTypeID(TypeID int) ([]SpecificationTemplate, error) {
     query := `
@@ -135,29 +115,7 @@ func InsertSpecificationValue(value string, templateID int) (SpecificationIDResp
 }
 
 
-// func InsertDeviceSpecifications(specs []DeviceSpecificationInput) error {
-//     tx, err := config.DB.Begin()
-//     if err != nil {
-//         return err
-//     }
-//     stmt, err := tx.Prepare(`
-//         INSERT INTO Device_Specification (device_id, spec_template_id, spec_master_id) 
-//         VALUES (?, ?, ?)`)
-//     if err != nil {
-//         tx.Rollback()
-//         return err
-//     }
-//     defer stmt.Close()
 
-//     for _, spec := range specs {
-//         _, err := stmt.Exec(spec.DeviceID, spec.SpecTemplateID, spec.SpecMasterID)
-//         if err != nil {
-//             tx.Rollback()
-//             return err
-//         }
-//     }
-//     return tx.Commit()
-// }
 func InsertDeviceSpecifications(specs []DeviceSpecificationInput) error {
     tx, err := config.DB.Begin()
     if err != nil {
